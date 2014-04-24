@@ -2,10 +2,11 @@ package com.blogspot.mikelaud.data;
 
 public enum Exchange {
 	
-	SMART("SMART", "SMART Exchange"),
+	ARCA("ARCA", "NYSE Arca (ETFs & stocks)"),
 	NASDAQ("NASDAQ", "National Association of Securities Dealers Automated Quotations"),
 	NYSE("NYSE", "New York Stock Exchange"),
-	PSE("PSE", "NYSE Arca");
+	PSE("PSE", "NYSE Arca (indices and options)"),
+	SMART("SMART", "SMART Exchange");
 	
 	private String mName;
 	private String mDescription;

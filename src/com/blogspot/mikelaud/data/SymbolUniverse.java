@@ -7,7 +7,8 @@ public enum SymbolUniverse {
 	INDICES(UniverseIndices.class, "Indices"),
 	DOW_JONES(UniverseDowJones.class, "Dow Jones"), // has priority over SP500
 	SP500(UniverseSp500.class, "S&P 500"),
-	SP400(UniverseSp400.class, "S&P 400");
+	SP400(UniverseSp400.class, "S&P 400"),
+	MISC(UniverseMisc.class, "MISC");
 	
 	private Class<? extends Enum<?>> mUniverseClass;
 	private String mDescription;
