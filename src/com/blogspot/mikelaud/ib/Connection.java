@@ -91,10 +91,10 @@ public class Connection extends ConnectionBase {
 		//
 		if (date.startsWith("finished-")) {
 			mHistoricalDataDone = true;
-			return;
 		}
-		//
-		++mHistoricalDataCount;
+		else {
+			++mHistoricalDataCount;
+		}
 		/*
 		System.out.println(
     		"id=" + reqId +
