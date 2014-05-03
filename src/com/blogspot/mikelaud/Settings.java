@@ -6,6 +6,7 @@ public class Settings {
 	private static final String HOST = "";
 	private static final int PORT = 7496;
 	private static final int CLIENT_ID = 0; 
+	private static final String FILE_NAME = "data.nyse"; 
 	
 	public static int getRequestPeriodSec() {
 		return REQUEST_PERIOD_SEC;
@@ -21,6 +22,10 @@ public class Settings {
 	
 	public static int getClientId() {
 		return CLIENT_ID;
+	}
+	
+	public static String getFileName() {
+		return FILE_NAME;
 	}
 	
 }
