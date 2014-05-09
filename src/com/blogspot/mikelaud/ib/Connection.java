@@ -16,6 +16,7 @@ public class Connection extends ConnectionBase {
 	private int mHistoricalDataCount = 0;
 	private volatile boolean mHistoricalDataDone = false;
 	private ConcurrentLinkedQueue<String> mErrors = new ConcurrentLinkedQueue<String>(); 
+	private ConnectionState mConnectionState = new ConnectionState(); 
 	
 	private void checkConnection() throws Exception {
 		//
@@ -124,8 +125,9 @@ public class Connection extends ConnectionBase {
 	}
 
 	@Override
-	public void error(int id, int errorCode, String errorMsg) {
-		mErrors.add("(id=" + id + " errorCode=" + errorCode + ") " + errorMsg);
+	public void error(int aId, int aErrorCode, String aErrorMsg) {
+		mErrors.add("(id=" + aId + " errorCode=" + aErrorCode + ") " + aErrorMsg);
+		mConnectionState.addError(aId, aErrorCode, aErrorMsg);
 	}
 	
 	public boolean hasNoErrors() {
@@ -146,6 +148,11 @@ public class Connection extends ConnectionBase {
 	
 	public boolean isConnected() { return mClientSocket.isConnected(); }
 	public boolean isDisconnected() { return ! isConnected(); }
+	
+	public boolean isIbConnected() { return mConnectionState.isOk(); }
+	public boolean isIbDisconnected() { return ! isIbConnected(); }
+	
+	public long getIbStateSequence() { return mConnectionState.getStateSequence(); }
 	
 	public void connect() throws Exception {
 		//

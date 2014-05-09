@@ -49,37 +49,45 @@ public class Program implements Runnable {
 			int remainingMin = totalMin - (remainingH * 60);
 			//
 			String beginLine = String.format(beginFormat, remainingH, remainingMin, percent, symbol.getName());
-			mConnection.printErrors();
-			Logger.print(beginLine);
-			mConnection.reqHistoricalData(symbol);
-			//
-			for (int i = 0; i < requestPeriodSec; i++) {
-				if (mConnection.hasErrors()) {
-					Logger.print("x");
+			for (;;) {
+				long ibStateSequence = mConnection.getIbStateSequence();
+				mConnection.printErrors();
+				Logger.print(beginLine);
+				mConnection.reqHistoricalData(symbol);
+				//
+				for (int i = 0; i < requestPeriodSec; i++) {
+					if (mConnection.hasErrors()) {
+						Logger.print("x");
+					}
+					else {
+						Logger.print(".");
+					}
+					try {
+						Thread.sleep(1000);
+					}
+					catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				//
+				String endLine = String.format(endFormat, globalNo);
+				if (mConnection.isHistoricalDataDone()) {
+					Logger.print(endLine);
+					Logger.println("OK (" + mConnection.getHistoricalDataCount() + ")");
+					break;
 				}
 				else {
-					Logger.print(".");
+					mConnection.cancelHistoricalData();
+					Logger.print(endLine);
+					Logger.println("FAIL");
+					if (mConnection.isIbConnected()) {
+						if (ibStateSequence == mConnection.getIbStateSequence()) {
+							mFailedSymbols.add(symbol);
+							break;
+						}
+					}
 				}
-				try {
-					Thread.sleep(1000);
-				}
-				catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-			//
-			String endLine = String.format(endFormat, globalNo);
-			if (mConnection.isHistoricalDataDone()) {
-				Logger.print(endLine);
-				Logger.println("OK (" + mConnection.getHistoricalDataCount() + ")");
-			}
-			else {
-				mFailedSymbols.add(symbol);
-				mConnection.cancelHistoricalData();
-				Logger.print(endLine);
-				Logger.println("FAIL");
-			}
-			mConnection.printErrors();
+			} // for (;;)
 		}
 	}
 	
