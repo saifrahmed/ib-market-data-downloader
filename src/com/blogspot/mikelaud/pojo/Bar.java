@@ -1,6 +1,6 @@
-package com.blogspot.mikelaud;
+package com.blogspot.mikelaud.pojo;
 
-public class Bar {
+public class Bar { // 8 x 4 + 4 x 2 = 40 bytes
 
 	private double mOpen = 0.0d;
 	private double mHigh = 0.0d;
