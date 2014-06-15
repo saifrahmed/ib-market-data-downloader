@@ -4,11 +4,11 @@ import com.blogspot.mikelaud.symbol.Symbol;
 
 public enum UniverseIndices implements Symbol {
 	
-	COMP("COMP", Exchange.NASDAQ, "NASDAQ Composite Index"),
-	INDU("INDU", Exchange.NYSE, "Dow Jones Industrial Average"),
-	MID("MID", Exchange.PSE, "S&P Midcap 400 Stock Index"),
-	NDX("NDX", Exchange.NASDAQ, "NASDAQ 100 Stock Index"),
-	SPSUPX("SPSUPX", Exchange.PSE, "S&P Composite 1500 Index");
+	COMP("COMP", Exchange.NASDAQ, "NASDAQ Composite Index"),
+	INDU("INDU", Exchange.NYSE, "Dow Jones Industrial Average"),
+	MID("MID", Exchange.PSE, "S&P Midcap 400 Stock Index"),
+	NDX("NDX", Exchange.NASDAQ, "NASDAQ 100 Stock Index"),
+	SPSUPX("SPSUPX", Exchange.PSE, "S&P Composite 1500 Index");
 	
 	private String mName;
 	private Exchange mExchange;

@@ -1,6 +1,7 @@
 package com.blogspot.mikelaud;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 
 import com.blogspot.mikelaud.ib.Connection;
 import com.blogspot.mikelaud.symbol.Symbol;
@@ -9,7 +10,8 @@ import com.blogspot.mikelaud.symbol.Symbols;
 public class Program implements Runnable {
 
 	private Connection mConnection = new Connection();
-	private ArrayList<Symbol> mFailedSymbols = new ArrayList<Symbol>();
+	private LinkedList<Symbol> mPendingSymbols = new LinkedList<Symbol>();
+	private LinkedList<Symbol> mFailedSymbols = new LinkedList<Symbol>();
 	
 	private String getBeginFormat(int aSymbolMaxSize) {
 		StringBuilder formatBuilder = new StringBuilder();
@@ -29,18 +31,36 @@ public class Program implements Runnable {
 
 	private void processSymbols() throws Exception {
 		Symbols symbols = new Symbols();
-		int symbolsCount = symbols.getCount();
+		mPendingSymbols.clear();
+		mPendingSymbols.addAll(Arrays.asList(symbols.getArray()));
+		//
+		int symbolsCount = mPendingSymbols.size();
 		int symbolMaxSize = symbols.getSymbolMaxSize();
 		//
 		String beginFormat = getBeginFormat(symbolMaxSize);
-		String endFormat = getEndFormat(symbols.getCount());
+		String endFormat = getEndFormat(symbolsCount);
 		//
 		int requestPeriodSec = Settings.getRequestPeriodSec();
 		mFailedSymbols.clear();
-		int globalNo = 0;
-		for (Symbol symbol : symbols.getArray()) {
+		int globalNo = 1;
+		//
+		while (! mPendingSymbols.isEmpty()) {
+			if (mConnection.isDisconnected() || mConnection.isIbDisconnected()) {
+				do {
+					Logger.print("x");
+					try {
+						Thread.sleep(1000);
+					}
+					catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+				while (mConnection.isDisconnected() || mConnection.isIbDisconnected());
+				Logger.println(".");
+			}
+			long ibStateSequence = mConnection.getIbStateSequence();
 			//
-			globalNo++;
+			Symbol symbol = mPendingSymbols.peekFirst();
 			int percent = (globalNo - 1) * 100 / symbolsCount;
 			//
 			int remainingSec = requestPeriodSec * (symbolsCount - globalNo);
@@ -49,45 +69,48 @@ public class Program implements Runnable {
 			int remainingMin = totalMin - (remainingH * 60);
 			//
 			String beginLine = String.format(beginFormat, remainingH, remainingMin, percent, symbol.getName());
-			for (;;) {
-				long ibStateSequence = mConnection.getIbStateSequence();
-				mConnection.printErrors();
-				Logger.print(beginLine);
-				mConnection.reqHistoricalData(symbol);
-				//
-				for (int i = 0; i < requestPeriodSec; i++) {
-					if (mConnection.hasErrors()) {
-						Logger.print("x");
-					}
-					else {
-						Logger.print(".");
-					}
-					try {
-						Thread.sleep(1000);
-					}
-					catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-				//
-				String endLine = String.format(endFormat, globalNo);
-				if (mConnection.isHistoricalDataDone()) {
-					Logger.print(endLine);
-					Logger.println("OK (" + mConnection.getHistoricalDataCount() + ")");
-					break;
+			mConnection.printErrors();
+			Logger.print(beginLine);
+			mConnection.reqHistoricalData(symbol);
+			//
+			for (int i = 0; i < requestPeriodSec; i++) {
+				if (mConnection.hasErrors()) {
+					Logger.print("x");
 				}
 				else {
-					mConnection.cancelHistoricalData();
-					Logger.print(endLine);
-					Logger.println("FAIL");
+					Logger.print(".");
+				}
+				try {
+					Thread.sleep(1000);
+				}
+				catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			//
+			String endLine = String.format(endFormat, globalNo);
+			if (mConnection.isHistoricalDataDone()) {
+				Logger.print(endLine);
+				Logger.println("OK (" + mConnection.getHistoricalDataCount() + ")");
+				//
+				mPendingSymbols.removeFirst();
+				globalNo++;
+			}
+			else {
+				mConnection.cancelHistoricalData();
+				Logger.print(endLine);
+				Logger.println("FAIL");
+				//
+				if (mConnection.isConnected()) {
 					if (mConnection.isIbConnected()) {
-						if (ibStateSequence == mConnection.getIbStateSequence()) {
-							mFailedSymbols.add(symbol);
-							break;
+						if (mConnection.getIbStateSequence() == ibStateSequence) {
+							mFailedSymbols.addLast(symbol);
+							mPendingSymbols.removeFirst();
+							globalNo++;
 						}
 					}
 				}
-			} // for (;;)
+			}
 		}
 	}
 	
